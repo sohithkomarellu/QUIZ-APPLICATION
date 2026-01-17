@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Take Quiz - Quiz Application</title>
+     <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+
+<header>
+    <h1>Take Quiz</h1>
+    <p>Student Panel</p>
+</header>
+
+<nav>
+    <a href="index.html">⬅ Back to Home</a>
+</nav>
+
+<!-- Timer Bar -->
+<section id="timerSection">
+    <h2>Time Remaining</h2>
+    <div id="timerBox">                
+        <span id="timeText">05:00</span>
+    </div>
+</section> 
+
+<section>
+    <h2>Enter Quiz ID</h2>
+    <input type="number" id="quizId" placeholder="Enter Quiz ID" required>
+    <button onclick="loadQuiz()">Load Quiz</button>
+</section>
+
+<section>
+    <h2>Quiz Questions</h2>
+    <div id="quizContainer">
+        <p>No quiz loaded.</p>
+    </div>
+</section>
+
+<section>
+    <button onclick="submitQuiz()">Submit Quiz</button>
+</section>
+
+<section>
+    <h2>Result</h2>
+    <p id="result"></p>
+</section>
+
+
+</div>
+
+
+   <script>
+    let responses = [];
+    let totalQuestions = 0;
+    let timeLeft = 300; // 5 minutes = 300 seconds
+    let timerInterval = null;
+
+    // 1️⃣ Load Quiz Questions
+    function loadQuiz() {
+        const quizId = document.getElementById("quizId").value;
+
+        if (quizId === "") {
+            alert("Please enter a Quiz ID");
+            return;
+        }
+
+        fetch(`/quiz/get/${quizId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Quiz not found");
+                }
+                return response.json();
+            })
+            .then(data => {
+                totalQuestions = data.length;
+                displayQuestions(data);
+                startTimer();
+            })
+            .catch(error => {
+                alert("Error loading quiz. Please check the Quiz ID.");
+                console.error(error);
+            });
+    }
+
+    // 2️⃣ Display Questions
+    function displayQuestions(questions) {
+        const container = document.getElementById("quizContainer");
+        container.innerHTML = "";
+        responses = [];
+
+        if (questions.length === 0) {
+            container.innerHTML = "<p>No questions found for this quiz.</p>";
+            return;
+        }
+
+        questions.forEach((q, index) => {
+            const questionDiv = document.createElement("div");
+            questionDiv.className = "question-card";
+
+            questionDiv.innerHTML = `
+                <div class="question-header">
+                    <span>Question ${index + 1} of ${questions.length}</span>
+                </div>
+
+                <p class="question-title">${q.questionTitle}</p>
+
+                <div class="options">
+                    <label class="option">
+                        <input type="radio" name="q${q.id}" value="${q.option1}" onchange="saveResponse(${q.id}, '${q.option1}')">
+                        ${q.option1}
+                    </label>
+
+                    <label class="option">
+                        <input type="radio" name="q${q.id}" value="${q.option2}" onchange="saveResponse(${q.id}, '${q.option2}')">
+                        ${q.option2}
+                    </label>
+
+                    <label class="option">
+                        <input type="radio" name="q${q.id}" value="${q.option3}" onchange="saveResponse(${q.id}, '${q.option3}')">
+                        ${q.option3}
+                    </label>
+
+                    <label class="option">
+                        <input type="radio" name="q${q.id}" value="${q.option4}" onchange="saveResponse(${q.id}, '${q.option4}')">
+                        ${q.option4}
+                    </label>
+                </div>
+            `;
+
+            container.appendChild(questionDiv);
+        });
+    }
+
+    // 3️⃣ Save each answer
+    function saveResponse(questionId, answer) {
+        responses = responses.filter(r => r.id !== questionId);
+        responses.push({ id: questionId, response: answer });
+    }
+
+    // 4️ Timer Logic
+    function startTimer() {
+        clearInterval(timerInterval);
+        timeLeft = 300; // Reset to 5 minutes
+        updateTimerUI();
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            updateTimerUI();
+
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                alert(" Time is up! Submitting your quiz...");
+                submitQuiz();
+            }
+        }, 1000);
+    }
+
+    function updateTimerUI() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        document.getElementById("timeText").innerText =
+            `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+    }
+
+    // 5️ Submit Quiz
+    function submitQuiz() {
+        const quizId = document.getElementById("quizId").value;
+
+        if (quizId === "") {
+            alert("Please enter Quiz ID first");
+            return;
+        }
+
+        if (responses.length === 0) {
+            alert("Please answer at least one question");
+            return;
+        }
+
+        clearInterval(timerInterval);
+
+        fetch(`/quiz/submit/${quizId}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(responses)
+        })
+        .then(response => response.json())
+        .then(score => {
+            document.getElementById("result").innerText =
+                " Your Score: " + score;
+        })
+        .catch(error => {
+            alert("Error submitting quiz");
+            console.error(error);
+        });
+    }
+</script>
+   
+</body>
+</html>

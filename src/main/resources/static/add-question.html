@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Question - Quiz Application</title>
+     <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+
+    <header>
+      <h1>Add New Question</h1>
+      <p>Teacher Panel</p>
+    </header>
+
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="admin-dashboard.html">Dashboard</a>
+      <a href="create-quiz.html">Create Quiz</a>
+    </nav>
+
+    <div class="content">
+
+      <section>
+        <h2>Enter Question Details</h2>
+
+        <form onsubmit="addQuestion(event)">
+          <label>Question Title</label><br>
+          <input type="text" id="questionTitle" required><br><br>
+
+          <label>Option 1</label><br>
+          <input type="text" id="option1" required><br><br>
+
+          <label>Option 2</label><br>
+          <input type="text" id="option2" required><br><br>
+
+          <label>Option 3</label><br>
+          <input type="text" id="option3" required><br><br>
+
+          <label>Option 4</label><br>
+          <input type="text" id="option4" required><br><br>
+
+          <label>Right Answer</label><br>
+          <input type="text" id="rightAnswer" required><br><br>
+
+          <label>Difficulty Level</label><br>
+          <input type="text" id="difficultyLevel" placeholder="Easy / Medium / Hard" required><br><br>
+
+          <label>Category</label><br>
+          <input type="text" id="category" placeholder="Java / SQL / C++" required><br><br>
+
+          <button type="submit">Add Question</button>
+        </form>
+      </section>
+
+      <section>
+        <p id="message"></p>
+      </section>
+
+    </div>
+
+
+  </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Add Question using POST /question/add
+        function addQuestion(event) {
+            event.preventDefault(); // Prevent page refresh
+
+            const question = {
+                questionTitle: document.getElementById("questionTitle").value,
+                option1: document.getElementById("option1").value,
+                option2: document.getElementById("option2").value,
+                option3: document.getElementById("option3").value,
+                option4: document.getElementById("option4").value,
+                rightAnswer: document.getElementById("rightAnswer").value,
+                difficultyLevel: document.getElementById("difficultyLevel").value,
+                category: document.getElementById("category").value
+            };
+
+            fetch("/question/add", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(question)
+            })
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById("message").innerText = data;
+                clearForm();
+            })
+            .catch(error => {
+                alert("Error adding question");
+                console.error(error);
+            });
+        }
+
+        // Clear form after submission
+        function clearForm() {
+            document.getElementById("questionTitle").value = "";
+            document.getElementById("option1").value = "";
+            document.getElementById("option2").value = "";
+            document.getElementById("option3").value = "";
+            document.getElementById("option4").value = "";
+            document.getElementById("rightAnswer").value = "";
+            document.getElementById("difficultyLevel").value = "";
+            document.getElementById("category").value = "";
+        }
+    </script>
+
+</body>
+</html>

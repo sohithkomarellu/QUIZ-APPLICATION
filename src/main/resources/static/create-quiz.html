@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Quiz - Quiz Application</title>
+     <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+
+    <header>
+      <h1>Create Quiz</h1>
+      <p>Teacher Panel</p>
+    </header>
+
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="admin-dashboard.html">Dashboard</a>
+      <a href="add-question.html">Add Question</a>
+    </nav>
+
+    <div class="content">
+
+      <section>
+        <h2>Enter Quiz Details</h2>
+
+        <form onsubmit="createQuiz(event)">
+          <label>Quiz Title</label><br>
+          <input type="text" id="title" placeholder="Enter quiz title" required><br><br>
+
+          <label>Category</label><br>
+          <input type="text" id="category" placeholder="Java / SQL / C++" required><br><br>
+
+          <label>Number of Questions</label><br>
+          <input type="number" id="numQ" min="1" placeholder="Enter number of questions" required><br><br>
+
+          <button type="submit">Create Quiz</button>
+        </form>
+      </section>
+
+      <section>
+        <p id="message"></p>
+      </section>
+
+    </div>
+
+
+  </div>
+
+
+    <!-- JavaScript -->
+    <script>
+        // Create Quiz using POST /quiz/create
+        function createQuiz(event) {
+            event.preventDefault(); // Prevent page refresh
+
+            const title = document.getElementById("title").value;
+            const category = document.getElementById("category").value;
+            const numQ = document.getElementById("numQ").value;
+
+            fetch(`/quiz/create?category=${category}&numQ=${numQ}&title=${title}`, {
+                method: "POST"
+            })
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById("message").innerText = data;
+                clearForm();
+            })
+            .catch(error => {
+                alert("Error creating quiz");
+                console.error(error);
+            });
+        }
+
+        // Clear form after submission
+        function clearForm() {
+            document.getElementById("title").value = "";
+            document.getElementById("category").value = "";
+            document.getElementById("numQ").value = "";
+        }
+    </script>
+
+</body>
+</html>
